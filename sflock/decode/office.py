@@ -57,62 +57,50 @@ class Office(Decoder):
 
         # Final skey and truncation.
         h = self.get_hash(h + block, self.ei.password_hash_alg)
-        skey = h[:self.ei.password_key_bits // 8]
-        return skey
+        return h[:self.ei.password_key_bits // 8]
 
     def init_secret_key(self):
-        # TODO Add support for private keys.
-        if False:
-            # rsa = PKCS1_v1_5.new(RSA.importKey(self._private_key))
-            # self.secret_key = rsa.decrypt(self.ei.encrypted_key_value, None)
-            # Presumably the following is correct.
-            # self.verifier_hash_input = rsa.decrypt(
-                # self.ei.verifier_hash_input, None
-            # )
-            # self.verifier_hash_value = rsa.decrypt(
-                # self.ei.verifier_hash_value, None
-            # )
-            pass
+        if not self.password:
+            return
+        block_verifier_input = bytearray([
+            0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79
+        ])
+        block_encrypted_key = bytearray([
+            0x14, 0x6e, 0x0b, 0xe7, 0xab, 0xac, 0xd0, 0xd6,
+        ])
 
-        if self.password:
-            block_verifier_input = bytearray([
-                0xfe, 0xa7, 0xd2, 0x76, 0x3b, 0x4b, 0x9e, 0x79
-            ])
-            block_verifier_value = bytearray([
-                0xd7, 0xaa, 0x0f, 0x6d, 0x30, 0x61, 0x34, 0x4e
-            ])
-            block_encrypted_key = bytearray([
-                0x14, 0x6e, 0x0b, 0xe7, 0xab, 0xac, 0xd0, 0xd6,
-            ])
+        # AES decrypt the encrypted* values with their pre-defined block
+        # keys and salt in order to get secret key.
+        aes = Cipher(
+            algorithms.AES(self.gen_encryption_key(block_verifier_input)),
+            modes.CBC(self.ei.password_salt),
+            backend=default_backend()
+        ).decryptor()
+        self.verifier_hash_input = aes.update(
+            self.ei.verifier_hash_input
+        ) + aes.finalize()
 
-            # AES decrypt the encrypted* values with their pre-defined block
-            # keys and salt in order to get secret key.
-            aes = Cipher(
-                algorithms.AES(self.gen_encryption_key(block_verifier_input)),
-                modes.CBC(self.ei.password_salt),
-                backend=default_backend()
-            ).decryptor()
-            self.verifier_hash_input = aes.update(
-                self.ei.verifier_hash_input
-            ) + aes.finalize()
+        block_verifier_value = bytearray(
+            [0xD7, 0xAA, 0x0F, 0x6D, 0x30, 0x61, 0x34, 0x4E]
+        )
 
-            aes = Cipher(
-                algorithms.AES(self.gen_encryption_key(block_verifier_value)),
-                modes.CBC(self.ei.password_salt),
-                backend=default_backend()
-            ).decryptor()
-            self.verifier_hash_value = aes.update(
-                self.ei.verifier_hash_value
-            ) + aes.finalize()
+        aes = Cipher(
+            algorithms.AES(self.gen_encryption_key(block_verifier_value)),
+            modes.CBC(self.ei.password_salt),
+            backend=default_backend()
+        ).decryptor()
+        self.verifier_hash_value = aes.update(
+            self.ei.verifier_hash_value
+        ) + aes.finalize()
 
-            aes = Cipher(
-                algorithms.AES(self.gen_encryption_key(block_encrypted_key)),
-                modes.CBC(self.ei.password_salt),
-                backend=default_backend()
-            ).decryptor()
-            self.secret_key = (
-                aes.update(self.ei.encrypted_key_value) + aes.finalize()
-            )
+        aes = Cipher(
+            algorithms.AES(self.gen_encryption_key(block_encrypted_key)),
+            modes.CBC(self.ei.password_salt),
+            backend=default_backend()
+        ).decryptor()
+        self.secret_key = (
+            aes.update(self.ei.encrypted_key_value) + aes.finalize()
+        )
 
     def decrypt_blob(self, f):
         ret = []

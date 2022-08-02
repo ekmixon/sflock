@@ -27,11 +27,7 @@ def package(f):
     header = f.stream.read(0x1000)
 
     if "DLL" in f.magic:
-        if filename.endswith(b".cpl"):
-            return "cpl"
-        # TODO Support PE exports to identify COM objects.
-        return "dll"
-
+        return "cpl" if filename.endswith(b".cpl") else "dll"
     if "PE32" in f.magic or "MS-DOS" in f.magic:
         return "exe"
 
@@ -129,9 +125,5 @@ platforms = {
 
 def platform(f):
     if f.package == "generic":
-        if is_bash_script(f) or is_elf_executable(f):
-            return "linux"
-        else:
-            return "windows"
-
+        return "linux" if is_bash_script(f) or is_elf_executable(f) else "windows"
     return platforms.get(f.package)

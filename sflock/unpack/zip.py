@@ -23,9 +23,7 @@ class ZipFile(Unpacker):
     def handles(self):
         if super(ZipFile, self).handles():
             return True
-        if self.f.stream.read(2) == b"PK":
-            return True
-        return False
+        return self.f.stream.read(2) == b"PK"
 
     def decrypt(self, password, archive, entry):
         try:
@@ -57,7 +55,7 @@ class ZipFile(Unpacker):
             if "Bad magic number for" in msg:
                 return
 
-            raise UnpackException("Unknown zipfile error: %s" % e)
+            raise UnpackException(f"Unknown zipfile error: {e}")
 
     def unpack(self, password=None, duplicates=None):
         try:

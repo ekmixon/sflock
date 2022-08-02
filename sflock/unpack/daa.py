@@ -35,6 +35,4 @@ class DaaFile(Unpacker):
         if temporary:
             os.unlink(filepath)
 
-        if not ret:
-            return []
-        return self.process_directory(dirpath, duplicates)
+        return self.process_directory(dirpath, duplicates) if ret else []

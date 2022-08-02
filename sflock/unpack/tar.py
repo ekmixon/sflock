@@ -93,9 +93,7 @@ class Tarbz2File(TarFile, Unpacker):
         d = bz2.BZ2File(filepath, "r")
 
         try:
-            ret = False
-            if d.read(0x1000):
-                ret = True
+            ret = bool(d.read(0x1000))
         except IOError:
             pass
 
@@ -113,25 +111,23 @@ class Tarbz2File(TarFile, Unpacker):
             filepath = self.f.filepath
             temporary = False
 
-        f = open(os.path.join(dirpath, "output"), "wb")
-        d = bz2.BZ2File(filepath, "r")
+        with open(os.path.join(dirpath, "output"), "wb") as f:
+            d = bz2.BZ2File(filepath, "r")
 
-        while f.tell() < MAX_TOTAL_SIZE:
-            try:
-                buf = d.read(0x10000)
-            except IOError:
-                break
-            if not buf:
-                break
-            f.write(buf)
+            while f.tell() < MAX_TOTAL_SIZE:
+                try:
+                    buf = d.read(0x10000)
+                except IOError:
+                    break
+                if not buf:
+                    break
+                f.write(buf)
 
-        if temporary:
-            os.unlink(filepath)
+            if temporary:
+                os.unlink(filepath)
 
-        filesize = f.tell()
-        d.close()
-        f.close()
-
+            filesize = f.tell()
+            d.close()
         if filesize >= MAX_TOTAL_SIZE:
             self.f.error = "files_too_large"
             return []

@@ -74,10 +74,7 @@ class Unpacker(object):
         if self.f.package and self.f.package in make_list(self.package or []):
             return True
 
-        for magic in make_list(self.magic or []):
-            if magic in self.f.magic:
-                return True
-        return False
+        return any(magic in self.f.magic for magic in make_list((self.magic or [])))
 
     def decrypt(self, *args, **kwargs):
         raise NotImplementedError
@@ -160,8 +157,7 @@ class Unpacker(object):
 
         passwords.insert(0, None)
         for password in passwords:
-            value = self.decrypt(password, *args, **kwargs)
-            if value:
+            if value := self.decrypt(password, *args, **kwargs):
                 return value
 
 class Decoder(object):
@@ -224,8 +220,7 @@ class File(object):
         self._ole_tried = False
 
     @classmethod
-    def from_path(self, filepath, relapath=None, filename=None,
-                  password=None):
+    def from_path(cls, filepath, relapath=None, filename=None, password=None):
         return File(
             filepath=filepath, stream=open(filepath, "rb"),
             relapath=relapath, filename=filename, password=password
@@ -283,7 +278,7 @@ class File(object):
             magic = self.magic or ""
             if "," in magic:
                 spl = magic.split(",")
-                magic = "%s (%s)" % (spl[0], ",".join(spl[1:3]).strip())
+                magic = f'{spl[0]} ({",".join(spl[1:3]).strip()})'
 
             self._magic_human = magic
         return self._magic_human or ""

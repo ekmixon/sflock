@@ -25,9 +25,7 @@ class CabFile(Unpacker):
             filepath = self.f.temp_path(".cab")
             temporary = True
 
-        ret = self.zipjail(
-            filepath, dirpath, "-d%s" % dirpath, filepath
-        )
+        ret = self.zipjail(filepath, dirpath, f"-d{dirpath}", filepath)
         if not ret:
             return []
 

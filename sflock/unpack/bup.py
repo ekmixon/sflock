@@ -19,9 +19,7 @@ class BupFile(Unpacker):
         if super(BupFile, self).handles():
             return True
 
-        if self.f.ole and ["Details"] in self.f.ole.listdir():
-            return True
-        return False
+        return bool(self.f.ole and ["Details"] in self.f.ole.listdir())
 
     def decrypt(self, content):
         return b"".join(b"%c" % (ch ^ 0x6a) for ch in content)

@@ -26,15 +26,12 @@ def supported():
     ret = []
     for plugin in plugins.values():
         if plugin(None).supported():
-            for ext in make_list(plugin.exts):
-                ret.append(ext)
+            ret.extend(iter(make_list(plugin.exts)))
     return ret
 
 def ident(f):
     """Identifies a file based on its contents."""
-    package = identify(f)
-
-    if package:
+    if package := identify(f):
         f.preview = False
         f.package = package
 

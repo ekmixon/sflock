@@ -20,10 +20,7 @@ def hta(f):
         if string not in f.contents:
             return
 
-    found = 0
-    for string in STRINGS:
-        found += f.contents.count(string)
-
+    found = sum(f.contents.count(string) for string in STRINGS)
     if found >= 10:
         return "hta"
 
@@ -45,10 +42,7 @@ def office_webarchive(f):
         if string not in f.contents:
             return
 
-    found = 0
-    for string in STRINGS:
-        found += f.contents.count(string)
-
+    found = sum(f.contents.count(string) for string in STRINGS)
     if found >= 10:
         return "doc"
 
@@ -67,19 +61,17 @@ def office_zip(f):
     if not f.get_child(b"docProps/app.xml"):
         return
 
-    packages = {
-        b"Microsoft Office Word": "doc",
-        b"Microsoft Excel": "xls",
-    }
+    if application := re.search(
+        b"<application>(.*)</application>", f.read(b"docProps/app.xml"), re.I
+    ):
+        packages = {
+            b"Microsoft Office Word": "doc",
+            b"Microsoft Excel": "xls",
+        }
 
-    application = re.search(
-        b"<application>(.*)</application>",
-        f.read(b"docProps/app.xml"), re.I
-    )
-    if not application:
+        return packages.get(application[1])
+    else:
         return
-
-    return packages.get(application.group(1))
 
 def office_ole(f):
     files = f.ole and f.ole.listdir() or []
@@ -94,11 +86,7 @@ def powershell(f):
         b"Start-Process", b"Copy-Item", b"Set-ItemProperty", b"Select-Object"
     ]
 
-    found = 0
-    for s in POWERSHELL_STRS:
-        if s in f.contents:
-            found += 1
-
+    found = sum(s in f.contents for s in POWERSHELL_STRS)
     if found > 1:
         return "ps1"
 
@@ -108,19 +96,14 @@ def javascript(f):
         b" false", b" null", b"Math.", b"alert("
     ]
 
-    found = 0
-    for s in JS_STRS:
-        if s in f.contents:
-            found += 1
-
+    found = sum(s in f.contents for s in JS_STRS)
     if found > 5:
         return "js"
 
 def wsf(f):
-    match = re.search(
+    if match := re.search(
         b"<script\\s+language=\"(J|VB|Perl)Script\"", f.contents, re.I
-    )
-    if match:
+    ):
         return "wsf"
 
 def visualbasic(f):
@@ -130,11 +113,7 @@ def visualbasic(f):
         b"End Sub", b"VBA"
     ]
 
-    found = 0
-    for s in VB_STRS:
-        if s in f.contents:
-            found += 1
-
+    found = sum(s in f.contents for s in VB_STRS)
     if found > 5:
         return "vbs"
     return
@@ -158,8 +137,7 @@ def identify(f):
         return
 
     for identifier in identifiers:
-        package = identifier(f)
-        if package:
+        if package := identifier(f):
             return package
 
 identifiers = [

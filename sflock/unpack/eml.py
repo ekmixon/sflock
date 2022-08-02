@@ -30,9 +30,7 @@ class EmlFile(Unpacker):
             line = stream.readline()
             if b":" in line:
                 keys.append(line.split(b":")[0])
-        if b"From" in keys and b"To" in keys:
-            return True
-        return False
+        return b"From" in keys and b"To" in keys
 
     def real_unpack(self, password, duplicates):
         entries = []
@@ -47,7 +45,7 @@ class EmlFile(Unpacker):
                 continue
 
             if not part.get_filename() and \
-                    part.get_content_type() in self.whitelisted_content_type:
+                        part.get_content_type() in self.whitelisted_content_type:
                 continue
 
             payload = part.get_payload(decode=True)

@@ -35,8 +35,9 @@ class Zip7File(Unpacker):
             temporary = True
 
         ret = self.zipjail(
-            filepath, dirpath, "x", "-mmt=off", "-o%s" % dirpath, filepath
+            filepath, dirpath, "x", "-mmt=off", f"-o{dirpath}", filepath
         )
+
         if not ret:
             return []
 
@@ -61,9 +62,7 @@ class GzipFile(Unpacker):
             filepath = self.f.temp_path(".7z")
             temporary = True
 
-        ret = self.zipjail(
-            filepath, dirpath, "x", "-o%s" % dirpath, filepath
-        )
+        ret = self.zipjail(filepath, dirpath, "x", f"-o{dirpath}", filepath)
         if not ret:
             return []
 
@@ -88,9 +87,7 @@ class LzhFile(Unpacker):
             filepath = self.f.temp_path(".7z")
             temporary = True
 
-        ret = self.zipjail(
-            filepath, dirpath, "x", "-o%s" % dirpath, filepath
-        )
+        ret = self.zipjail(filepath, dirpath, "x", f"-o{dirpath}", filepath)
         if not ret:
             return []
 
@@ -118,8 +115,9 @@ class VHDFile(Unpacker):
             temporary = True
 
         ret = self.zipjail(
-            filepath, dirpath, "x", "-xr![SYSTEM]*", "-o%s" % dirpath, filepath
+            filepath, dirpath, "x", "-xr![SYSTEM]*", f"-o{dirpath}", filepath
         )
+
 
         if not ret:
             return []

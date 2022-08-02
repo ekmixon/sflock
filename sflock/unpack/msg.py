@@ -28,12 +28,10 @@ class MsgFile(Unpacker):
             return self.f.ole.openstream("/".join(filename)).read()
 
     def get_string(self, *filename):
-        ascii_filename = "%s001E" % "/".join(filename)
-        unicode_filename = "%s001F" % "/".join(filename)
+        ascii_filename = f'{"/".join(filename)}001E'
+        unicode_filename = f'{"/".join(filename)}001F'
 
-        # If available, the unicode stream takes precedence.
-        stream = self.get_stream(unicode_filename)
-        if stream:
+        if stream := self.get_stream(unicode_filename):
             return stream.decode("utf16")
 
         return self.get_stream(ascii_filename)

@@ -18,7 +18,7 @@ def import_plugins(dirpath, module_prefix, namespace, class_):
     for fname in os.listdir(dirpath):
         if fname.endswith(".py") and not fname.startswith("__init__"):
             module_name, _ = os.path.splitext(fname)
-            importlib.import_module("%s.%s" % (module_prefix, module_name))
+            importlib.import_module(f"{module_prefix}.{module_name}")
 
     plugins = {}
     for subclass in class_.__subclasses__():
@@ -35,6 +35,4 @@ def data_file(*path):
     return os.path.abspath(os.path.join(dirpath, b"data", *path))
 
 def make_list(obj):
-    if isinstance(obj, (tuple, list)):
-        return list(obj)
-    return [obj]
+    return list(obj) if isinstance(obj, (tuple, list)) else [obj]

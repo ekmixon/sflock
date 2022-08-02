@@ -15,17 +15,12 @@ from sflock.misc import data_file
 
 log = logging.getLogger(__name__)
 
-# Provide libmagic support in terms of binaries under Windows.
 if sys.platform == "win32":
     if sys.maxsize != 0x7fffffff:
-        os.environ["PATH"] = "%s;%s" % (
-            data_file("win64"), os.environ["PATH"]
-        )
+        os.environ["PATH"] = f'{data_file("win64")};{os.environ["PATH"]}'
         magic_file = data_file("win64", "magic.mgc")
     else:
-        os.environ["PATH"] = "%s;%s" % (
-            data_file("win32"), os.environ["PATH"]
-        )
+        os.environ["PATH"] = f'{data_file("win32")};{os.environ["PATH"]}'
         magic_file = data_file("win32", "magic.mgc")
 
 # Therefore only import libmagic at this point.
